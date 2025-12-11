@@ -1,0 +1,56 @@
+pipeline {
+    agent any
+
+    environment {
+        REGISTRY = "afraz44"
+        IMAGE_NAME = "nginx-app"
+        VERSION = "${BUILD_NUMBER}"
+    }
+
+    stages {
+        stage('Checkout Code') {
+            steps {
+                git branch: 'main', url: 'https://github.com/afraz44/YOUR-REPO.git'
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                sh "docker build -t $REGISTRY/$IMAGE_NAME:$VERSION ./nginx"
+            }
+        }
+
+        stage('Push Docker Image') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
+                    sh """
+                    echo $PASS | docker login -u $USER --password-stdin
+                    docker push $REGISTRY/$IMAGE_NAME:$VERSION
+                    """
+                }
+            }
+        }
+
+        stage('Update Kubernetes Manifest') {
+            steps {
+                sh """
+                sed -i 's|image:.*|image: $REGISTRY/$IMAGE_NAME:$VERSION|g' k8s/nginx-deployment.yaml
+                """
+            }
+        }
+
+        stage('Push Updated Manifests to GitHub') {
+            steps {
+                withCredentials([string(credentialsId: 'github-token', variable: 'TOKEN')]) {
+                    sh """
+                    git config user.email "jenkins@ci.com"
+                    git config user.name "Jenkins"
+                    git add k8s/nginx-deployment.yaml
+                    git commit -m "Updated image to $VERSION"
+                    git push https://$TOKEN@github.com/afraz44/YOUR-REPO.git HEAD:main
+                    """
+                }
+            }
+        }
+    }
+}
