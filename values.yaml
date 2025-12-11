@@ -1,0 +1,11 @@
+php:
+  image: "localhost:5000/php-fpm-app"
+  tag: "v2"
+  replicaCount: 1
+  port: 9000
+
+nginx:
+  image: "localhost:5000/nginx-app"
+  tag: "latest"
+  replicaCount: 1
+  port: 80
