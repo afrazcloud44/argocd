@@ -10,7 +10,7 @@ pipeline {
     stages {
         stage('Checkout Code') {
             steps {
-                git branch: 'main', url: 'https://github.com/afraz44/YOUR-REPO.git'
+                git branch: 'main', url: 'https://github.com/afraz44/argocd.git'
             }
         }
 
@@ -47,7 +47,7 @@ pipeline {
                     git config user.name "Jenkins"
                     git add k8s/nginx-deployment.yaml
                     git commit -m "Updated image to $VERSION"
-                    git push https://$TOKEN@github.com/afraz44/YOUR-REPO.git HEAD:main
+                    git push https://$TOKEN@github.com/afraz44/argocd.git HEAD:main
                     """
                 }
             }
